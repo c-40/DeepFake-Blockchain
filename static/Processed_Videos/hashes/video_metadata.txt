@@ -1,0 +1,49 @@
+track_type: General
+count: 349
+count_of_stream_of_this_kind: 1
+kind_of_stream: General
+other_kind_of_stream: ['General']
+stream_identifier: 0
+count_of_video_streams: 1
+video_format_list: MPEG-4 Visual
+video_format_withhint_list: MPEG-4 Visual
+codecs_video: MPEG-4 Visual
+complete_name: C:\Users\BRAMHE~1\AppData\Local\Temp\tmpn0xmi81h.mp4
+folder_name: C:\Users\BRAMHE~1\AppData\Local\Temp
+file_name_extension: tmpn0xmi81h.mp4
+file_name: tmpn0xmi81h
+file_extension: mp4
+format: MPEG-4
+other_format: ['MPEG-4']
+format_extensions_usually_used: braw mov mp4 m4v m4a m4b m4p m4r 3ga 3gpa 3gpp 3gp 3gpp2 3g2 k3g jpm jpx mqv ismv isma ismt f4a f4b f4v
+commercial_name: MPEG-4
+format_profile: Base Media
+internet_media_type: video/mp4
+codec_id: isom
+other_codec_id: ['isom (isom/iso2/mp41)']
+codec_id_url: http://www.apple.com/quicktime/download/standalone.html
+codecid_compatible: isom/iso2/mp41
+file_size: 1757180
+other_file_size: ['1.68 MiB', '2 MiB', '1.7 MiB', '1.68 MiB', '1.676 MiB']
+duration: 15200
+other_duration: ['15 s 200 ms', '15 s 200 ms', '15 s 200 ms', '00:00:15.200', '00:00:15:06', '00:00:15.200 (00:00:15:06)']
+overall_bit_rate_mode: VBR
+other_overall_bit_rate_mode: ['Variable']
+overall_bit_rate: 924832
+other_overall_bit_rate: ['925 kb/s']
+frame_rate: 30.000
+other_frame_rate: ['30.000 FPS']
+frame_count: 456
+stream_size: 2847
+other_stream_size: ['2.78 KiB (0%)', '3 KiB', '2.8 KiB', '2.78 KiB', '2.780 KiB', '2.78 KiB (0%)']
+proportion_of_this_stream: 0.00162
+headersize: 36
+datasize: 1754341
+footersize: 2803
+isstreamable: No
+file_creation_date: 2024-10-24 05:43:38.397 UTC
+file_creation_date__local: 2024-10-24 11:13:38.397
+file_last_modification_date: 2024-10-24 05:43:38.408 UTC
+file_last_modification_date__local: 2024-10-24 11:13:38.408
+writing_application: Lavf58.3.100
+other_writing_application: ['Lavf58.3.100']
