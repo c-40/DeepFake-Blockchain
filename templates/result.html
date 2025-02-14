@@ -1,103 +1,19 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Processing Result</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-        }
-        .result-container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: inline-block;
-            margin-bottom: 20px;
-            max-width: 600px; /* Limit width for better layout */
-        }
-        .result {
-            margin: 10px 0;
-            font-size: 18px;
-        }
-        .confidence {
-            font-weight: bold;
-            color: #28a745;
-        }
-        .download-link {
-            display: inline-block;
-            margin: 10px 0;
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .download-link:hover {
-            background-color: #0056b3;
-        }
-        .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            font-size: 16px;
-            text-decoration: underline;
-            color: #007bff;
-            transition: color 0.3s;
-        }
-        .back-link:hover {
-            color: #0056b3;
-        }
-        video {
-            width: 100%; /* Full width for responsive design */
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Processing Result</h1>
-    <div class="result-container">
-         <p class="result"><strong>Prediction:</strong> {{ prediction }}</p>
-        <p class="result confidence"><strong>Confidence:</strong> {{ confidence }}%</p>
-        <p class="result"><strong>Processed Video:</strong></p>
-        
-        Video player to display the processed video -->
-        <!-- <video controls>
-            <source src="{{ processed_video_path }}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-
-        <a class="download-link" href="{{ processed_video_path }}" download>Download Processed Video <i class="fas fa-download"></i></a>
-        <a class="back-link" href="/">Upload another video</a>
-    </div>
-</body>
-</html> --> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Processing Result</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-    <script src="https://unpkg.com/@thirdweb-dev/sdk@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://unpkg.com/@thirdweb-dev/sdk@latest"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Processing Result</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <script src="https://unpkg.com/@thirdweb-dev/sdk@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/@thirdweb-dev/sdk@latest"></script>
 
     <style>
-       body { 
+        body { 
             font-family: 'Arial', sans-serif; 
-            background-color: #eaeaea; /* Light Gray Background */
+            background-color: #eaeaea; 
             padding: 30px; 
             display: flex; 
             justify-content: center; 
@@ -105,13 +21,8 @@
             height: 100vh;
             margin: 0;
         }
-        h1 { 
-            color: #333; /* Dark Gray Color */
-            font-size: 28px; 
-            margin-bottom: 20px;
-        }
         .result-container { 
-            background: #fff; /* White Background */
+            background: #fff; 
             padding: 25px; 
             border-radius: 10px; 
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
@@ -119,69 +30,83 @@
             max-width: 700px;
             text-align: left;
         }
-        .result-container p { 
-            font-size: 18px; 
-            margin: 10px 0; 
-            color: #555; /* Darker Gray for Text */
-        }
-        .result-container strong { 
-            color: #000; /* Black Color for Strong Text */
-        }
-        .preview-frame { 
-            width: 100%; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); 
-            margin-top: 20px;
-        }
-        .buttons-container {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .download-link, .back-link, #store-hash-button {
-            text-decoration: none;
-            background-color: #00796b;; /* Green Color */
+        .result-container p { font-size: 18px; color: #555; }
+        .buttons-container { margin-top: 20px; display: flex; justify-content: space-between; }
+        #store-hash-button {
+            background-color: #00796b; 
             color: white;
-            padding: 10px 20px; /* Standard Padding */
+            padding: 10px 20px;
             border-radius: 5px;
             border: none;
             font-size: 16px;
             cursor: pointer;
-            text-align: center;
             transition: background-color 0.3s;
         }
-        .back-link {
-            background-color: #555; /* Dark Gray for Back Link */
-        }
-        .download-link:hover, .back-link:hover, #store-hash-button:hover {
-            background-color: #00796b; /* Darker Green on Hover */
-        }
-        .alert { 
-            color: red; 
-            margin-top: 15px;
-            font-size: 16px;
-        }
+        #store-hash-button:hover { background-color: #004d40; }
+        .alert { color: red; margin-top: 15px; font-size: 16px; }
     </style>
 </head>
 <body>
     <div class="result-container">
         <h1>Processing Result</h1>
-        <p id="prediction" class="result"><strong>Prediction:</strong> {{ prediction }}</p>
-        <p class="result confidence"><strong>Confidence:</strong> {{ confidence }}%</p>
-        <p class="result"><strong>First Frame Preview:</strong></p>
-        <img id="preview-frame" class="preview-frame" src="{{ first_frame_path }}" alt="First frame of video">
-        <p class="result"><strong>{{metadata}}</strong></p>
-        <div class="buttons-container">
-            <a class="back-link" href="/">Upload another video</a>
-        </div>
-        
+        <p><strong>Prediction:</strong> <span id="prediction">{{ prediction }}</span></p>
+        <p><strong>Confidence:</strong> <span id="confidence">{{ confidence }}</span>%</p>
         <button id="store-hash-button">Store Hashes</button>
         <p class="alert" id="alert-message"></p>
+        <p id="hash-result"></p>
     </div>
+
     <script>
-        // Contract details
-        const CONTRACT_ADDRESS = '0x6eac5C456e4118f7cEC4DEF905Cb98E8a124f6bB'; // Replace with your contract address
+        const CONTRACT_ADDRESS = '0x36432932F287A29B8E9178dB29F91290329B25a9'; 
         const CONTRACT_ABI = [
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string[]",
+                        "name": "_localHashes",
+                        "type": "string[]"
+                    }
+                ],
+                "name": "compareHashes",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "similarFrames",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "hash1",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "hash2",
+                        "type": "string"
+                    }
+                ],
+                "name": "getHammingDistance",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "distance",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "pure",
+                "type": "function"
+            },
             {
                 "inputs": [
                     {
@@ -201,11 +126,6 @@
                         "internalType": "string[]",
                         "name": "",
                         "type": "string[]"
-                    },
-                    {
-                        "internalType": "string[]",
-                        "name": "",
-                        "type": "string[]"
                     }
                 ],
                 "stateMutability": "view",
@@ -219,25 +139,6 @@
                         "internalType": "uint256",
                         "name": "",
                         "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "bytes32",
-                        "name": "",
-                        "type": "bytes32"
-                    }
-                ],
-                "name": "hashExists",
-                "outputs": [
-                    {
-                        "internalType": "bool",
-                        "name": "",
-                        "type": "bool"
                     }
                 ],
                 "stateMutability": "view",
@@ -276,15 +177,23 @@
                 "type": "function"
             },
             {
+                "inputs": [],
+                "name": "similarityThreshold",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
                 "inputs": [
                     {
                         "internalType": "string[]",
-                        "name": "_hashes1",
-                        "type": "string[]"
-                    },
-                    {
-                        "internalType": "string[]",
-                        "name": "_hashes2",
+                        "name": "_hashes",
                         "type": "string[]"
                     }
                 ],
@@ -295,97 +204,9 @@
             }
         ];
 
-//         // Function to detect MetaMask and connect
-//         async function detectMetaMask() {
-//             if (typeof window.ethereum !== 'undefined') {
-//                 console.log('MetaMask is installed!');
-//                 await ethereum.request({ method: 'eth_requestAccounts' });
-//                 return new ethers.providers.Web3Provider(window.ethereum);
-//             } else {
-//                 alert('Please install MetaMask to use this feature.');
-//                 throw new Error('MetaMask not found');
-//             }
-//         }
+        
 
-//         // Fetch hashes from backend API
-//         async function fetchHashes() {
-//             const faceHashes = {{ face_hashes | tojson }};
-//             const backgroundHashes = {{ background_hashes | tojson }};
-//             return [faceHashes, backgroundHashes];
-//         }
-
-//         // Store hashes if prediction is real
-//         async function storeHashesIfReal() {
-//             const predictionElement = document.getElementById('prediction');
-//             const prediction = predictionElement.innerText.split(':')[1].trim(); // Extract "REAL" or "FAKE"
-//             const alertMessage = document.getElementById('alert-message');
-
-//             // Check if the prediction is "real"
-//             if (prediction.toLowerCase() !== 'real') {
-//                 alertMessage.innerText = 'Prediction is not real. Hashes will not be stored.';
-//                 return;
-//             }
-
-//             try {
-//                 const [hashes1, hashes2] = await fetchHashes();
-
-//                 const provider = await detectMetaMask();
-//                 const signer = provider.getSigner();
-//                 const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
-//                 const transaction = await contract.storeHashes(hashes1, hashes2);
-//                 const receipt = await transaction.wait();
-//                 alert(`Transaction successful! Tx Hash: ${receipt.transactionHash}`);
-//                 alertMessage.innerText = ''; // Clear previous messages
-//             } catch (error) {
-//                 console.error('Error storing hashes:', error);
-//                 alertMessage.innerText = 'An error occurred while storing hashes.';
-//             }
-//         }
-//         // Function to fetch hash data from the REST API
-//         async function getHashById(_id) {
-//     const provider = await detectMetaMask();
-//     const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider.getSigner());
-
-//     try {
-//         // Fetch data from the smart contract
-//         const result = await contract.getHashById(_id);
-
-//         // Extract face and background hashes from result
-//         const faceHashes = result[1];  // Second element in the response
-//         const backgroundHashes = result[2];  // Third element in the response
-
-//         return { faceHashes, backgroundHashes };
-//     } catch (error) {
-//         console.error('Error fetching hash:', error);
-//         throw error;
-//     }
-// }
-
-// // Example usage: Fetching hashes by ID
-// async function fetchAndDisplayHashes(id) {
-//     try {
-//         const { faceHashes, backgroundHashes } = await getHashById(id);
-
-//         console.log('Face Hashes:', faceHashes);
-//         console.log('Background Hashes:', backgroundHashes);
-
-//         document.getElementById('result').innerHTML = `
-//             <p>Face Hashes: ${faceHashes.join(', ')}</p>
-//             <p>Background Hashes: ${backgroundHashes.join(', ')}</p>
-//         `;
-//     } catch (error) {
-//         document.getElementById('result').innerHTML = '<p>Error fetching hashes.</p>';
-//     }
-// }
-
-
-
-
-//         // Add event listener to the button
-//         document.getElementById('store-hash-button').addEventListener('click', storeHashesIfReal);
-       // Detect MetaMask and connect to Ethereum provider
-async function detectMetaMask() {
+        async function detectMetaMask() {
     if (typeof window.ethereum !== 'undefined') {
         console.log('MetaMask is installed!');
         await ethereum.request({ method: 'eth_requestAccounts' });
@@ -396,359 +217,62 @@ async function detectMetaMask() {
     }
 }
 
-// Fetch hashes from backend API (simulated using template variables)
-async function fetchHashes() {
-    const faceHashes = {{ face_hashes | tojson }};
-    const backgroundHashes = {{ background_hashes | tojson }};
-    return [faceHashes, backgroundHashes];
-}
 
-// // Store hashes if prediction is "real"
 async function storeHashesIfReal() {
-    const predictionElement = document.getElementById('prediction');
-    const prediction = predictionElement.innerText.split(':')[1].trim(); // Extract "REAL" or "FAKE"
-    const alertMessage = document.getElementById('alert-message');
+  const predictionElement = document.getElementById('prediction');
+  
+  const predictionText = predictionElement.innerText.trim();  // Directly trim
+  
+const alertMessage = document.getElementById('alert-message');
 
     // Check if the prediction is "real"
-    if (prediction.toLowerCase() !== 'real') {
-        alertMessage.innerText = 'Prediction is not real. Hashes will not be stored. Fetching hashes instead...';
-        
-        // Fetch and display hashes since the prediction is not "real"
+    if (predictionText.toLowerCase() !== 'real') {
+        alertMessage.innerText = 'Prediction is not real. Hash will not be stored. Fetching hash instead...';
         try {
-            const [hashes1, hashes2] = await fetchHashes();
-            document.getElementById('result').innerHTML = `
-                <p>Face Hashes: ${hashes1.join(', ')}</p>
-                <p>Background Hashes: ${hashes2.join(', ')}</p>
-            `;
+            console.log(hashes)
+            document.getElementById('hash-result').innerHTML = `<p>Fetched Hash: ${hashes[0]}</p>`;
         } catch (error) {
-            console.error('Error fetching hashes:', error);
-            alertMessage.innerText = 'An error occurred while fetching hashes.';
-            alert('Fake video cannot be stored on blockchain')
+            console.error('Error fetching hash:', error);
+            alertMessage.innerText = 'An error occurred while fetching the hash.';
+            alert('Fake video cannot be stored on blockchain');
         }
 
         return;  // Exit the function
     }
 
-    // Proceed to store hashes if prediction is "real"
+    // Proceed to store hash if prediction is "real"
     try {
-        const [hashes1, hashes2] = await fetchHashes();
-        
+        // const hashe = {{ hash | tojson }};
+        // const formattedHashes = hashe.map(item => `"${item}"`).join(", ");
+        // console.log(`const hashes = [${formattedHashes}];`);
+        // console.log(hashes)
+        const hashe = JSON.parse('{{ hash | tojson | safe }}');
+
+
         const provider = await detectMetaMask();
         const signer = provider.getSigner();
         const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-        // Store hashes in the smart contract
-        const transaction = await contract.storeHashes(hashes1, hashes2);
+        // Store hash in the smart contract
+        const transaction = await contract.storeHashes(hashe);
         const receipt = await transaction.wait();
         
         alert(`Transaction successful! Tx Hash: ${receipt.transactionHash}`);
         alertMessage.innerText = ''; // Clear previous messages
     } catch (error) {
-        console.error('Error storing hashes:', error);
-        alertMessage.innerText = 'An error occurred while storing hashes.';
+        console.error('Error storing hash:', error);
+        alertMessage.innerText = 'An error occurred while storing the hash.';
     }
 }
 
-
-// Add event listener to the button
-document.getElementById('store-hash-button').addEventListener('click', storeHashesIfReal);
-
-       
+      
+const storeHashButton = document.getElementById('store-hash-button');
+if (storeHashButton) {
+    storeHashButton.addEventListener('click', storeHashesIfReal);
+    alert("clicked")
+} else {
+    console.error('Store hash button not found!');
+}
     </script>
 </body>
 </html>
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Processing Result</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-    <script src="https://unpkg.com/@thirdweb-dev/sdk@latest"></script>
-
-    <style>
-       body { 
-            font-family: 'Arial', sans-serif; 
-            background-color: #eaeaea; 
-            padding: 30px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh;
-            margin: 0;
-        }
-        h1 { 
-            color: #333; 
-            font-size: 28px; 
-            margin-bottom: 20px;
-        }
-        .result-container { 
-            background: #fff; 
-            padding: 25px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
-            width: 100%;
-            max-width: 700px;
-            text-align: left;
-        }
-        .result-container p { 
-            font-size: 18px; 
-            margin: 10px 0; 
-            color: #555; 
-        }
-        .result-container strong { 
-            color: #000; 
-        }
-        .preview-frame { 
-            width: 100%; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); 
-            margin-top: 20px;
-        }
-        .buttons-container {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .download-link, .back-link, #store-hash-button {
-            text-decoration: none;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .back-link {
-            background-color: #555;
-        }
-        .download-link:hover, .back-link:hover, #store-hash-button:hover {
-            background-color: #45a049;
-        }
-        .alert { 
-            color: red; 
-            margin-top: 15px;
-            font-size: 16px;
-        }
-    </style>
-</head>
-<body>
-   
-    <div class="result-container">
-        <h1>Processing Result</h1>
-        <p id="prediction" class="result"><strong>Prediction:</strong> {{ prediction }}</p>
-        <p class="result confidence"><strong>Confidence:</strong> {{ confidence }}%</p>
-        <p class="result"><strong>First Frame Preview:</strong></p>
-        <img id="preview-frame" class="preview-frame" src="{{ first_frame_path }}" alt="First frame of video">
-
-        <div class="buttons-container">
-            <a class="back-link" href="/">Upload another video</a>
-        </div>
-        
-        <button id="store-hash-button">Store Hashes</button>
-        <p class="alert" id="alert-message"></p>
-    </div>
-
-    <script>
-    const faceHashes = JSON.parse('{{ face_hashes | safe }}');
-    const backgroundHashes = JSON.parse('{{ background_hashes | safe }}');
-    const metadata = JSON.parse('{{ metadata | safe }}');
-    console.log('Face Hashes:', faceHashes);
-    console.log('Background Hashes:', backgroundHashes);
-    console.log('Metadata:', metadata);
-        const CONTRACT_ADDRESS = '0xE21Ce263eC516172D539A91D3DDD798268E47Bf6'; // Replace with your contract address
-        const CONTRACT_ABI =[
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }
-    ],
-    "name": "getHashById",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string[]",
-        "name": "",
-        "type": "string[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "",
-        "type": "string[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "",
-        "type": "string[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getTotalHashes",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "name": "hashExists",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "idToHash",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "nextId",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string[]",
-        "name": "_hashes1",
-        "type": "string[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_hashes2",
-        "type": "string[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_metadata",
-        "type": "string[]"
-      }
-    ],
-    "name": "storeHashes",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-];
-
-async function detectMetaMask() {
-        if (typeof window.ethereum !== 'undefined') {
-            console.log('MetaMask detected.');
-            try {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                return new ethers.providers.Web3Provider(window.ethereum);
-            } catch (err) {
-                alert('MetaMask connection failed. Please try again.');
-                throw new Error('User denied MetaMask connection');
-            }
-        } else {
-            alert('Please install MetaMask to use this feature.');
-            throw new Error('MetaMask not found');
-        }
-    }
-
-    // Dummy function to simulate fetching hashes
- 
-
-    // Store hashes on the blockchain if the prediction is "real"
-    async function storeHashesIfReal() {
-        const predictionElement = document.getElementById('prediction');
-        const alertMessage = document.getElementById('alert-message');
-        const storeButton = document.getElementById('store-hash-button');
-        const loader = document.getElementById('loader');
-
-        const prediction = predictionElement.innerText.split(':')[1].trim();
-
-        if (prediction.toLowerCase() !== 'real') {
-            alertMessage.innerText = 'Prediction is not real. Hashes will not be stored.';
-            return;
-        }
-
-        // Disable button and show loading indicator
-       
-
-        try {
-            const [hashes1, hashes2, metadata] = await fetchHashes();
-            console.log('Hashes to store:', hashes1, hashes2, metadata);
-
-            const provider = await detectMetaMask();
-            const signer = provider.getSigner();
-            const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
-            console.log('Storing hashes on blockchain...');
-
-            const tx = await contract.storeHashes(hashes1, hashes2, metadata);
-            const receipt = await tx.wait();
-
-            alert(`Transaction successful! Tx Hash: ${receipt.transactionHash}`);
-        } catch (error) {
-            console.error('Error storing hashes:', error);
-            alertMessage.innerText = 'An error occurred while storing hashes.';
-        } finally {
-            // Enable button and hide loading indicator
-            storeButton.disabled = false;
-            loader.style.display = 'none';
-        }
-    }
-
-    // Add event listener to the button
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('store-hash-button').addEventListener('click', storeHashesIfReal);
-    });
-
-    </script>
-</body>
-</html> -->
