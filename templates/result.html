@@ -247,6 +247,7 @@ const alertMessage = document.getElementById('alert-message');
         // console.log(`const hashes = [${formattedHashes}];`);
         // console.log(hashes)
         const hashe = JSON.parse('{{ hash | tojson | safe }}');
+        console.log("hash",hashe)
 
 
         const provider = await detectMetaMask();
@@ -261,7 +262,8 @@ const alertMessage = document.getElementById('alert-message');
         alertMessage.innerText = ''; // Clear previous messages
     } catch (error) {
         console.error('Error storing hash:', error);
-        alertMessage.innerText = 'An error occurred while storing the hash.';
+        // alertMessage.innerText = 'An error occurred while storing the hash.';
+        alert(error.reason)
     }
 }
 
@@ -269,7 +271,7 @@ const alertMessage = document.getElementById('alert-message');
 const storeHashButton = document.getElementById('store-hash-button');
 if (storeHashButton) {
     storeHashButton.addEventListener('click', storeHashesIfReal);
-    alert("clicked")
+    alert("Please find the result")
 } else {
     console.error('Store hash button not found!');
 }
