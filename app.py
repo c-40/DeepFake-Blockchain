@@ -292,11 +292,10 @@ def save_video_hashes(video_hashes, out_dir):
 def extract_first_frame(video_path):
     # Load the video using OpenCV
     cap = cv2.VideoCapture(video_path)
-    
     success, frame = cap.read()  # Read the first frame
     if success:
         # Save the first frame as an image
-        first_frame_path = 'static/first_frame.jpg'  # Save in static folder
+        first_frame_path = 'static/uploads/first_frame.jpg'  # Save in static folder
         cv2.imwrite(first_frame_path, frame)
         cap.release()
         return first_frame_path
@@ -329,7 +328,6 @@ def save_metadata(metadata, out_dir):
 def index():
     return render_template('index.html')
 
-
 @app.route('/upload', methods=['POST'])
 def upload():
     # Check if the 'video_file' exists in the request files
@@ -337,6 +335,7 @@ def upload():
         return "No file uploaded.", 400
 
     video_file = request.files['video_file']
+    
 
     # Check if the file has a name (i.e., it is not empty)
     if not video_file.filename:
@@ -374,6 +373,10 @@ def upload():
     prediction = detect_fake_video(processed_video)  # Run the model on the processed video
     result_label = "REAL" if prediction[0] == 1 else "FAKE"  # Label the result based on prediction
     confidence_score = prediction[1]  # Get the confidence score from the model
+    
+    # Extract the first frame
+    first_frame_path = extract_first_frame(video_path)
+
 
     # Return the result to the front-end with the prediction and the path to the processed video
     return render_template(
@@ -382,7 +385,65 @@ def upload():
         confidence=confidence_score,
         processed_video_path=processed_video,
         hash=hashes_list,  # Send list of hashes to the template
+        first_frame_path=first_frame_path  # Use the corrected variable name
     )
+
+
+# @app.route('/upload', methods=['POST'])
+# def upload():
+#     # Check if the 'video_file' exists in the request files
+#     if 'video_file' not in request.files:
+#         return "No file uploaded.", 400
+
+#     video_file = request.files['video_file']
+
+#     # Check if the file has a name (i.e., it is not empty)
+#     if not video_file.filename:
+#         return "No file selected.", 400
+
+#     # Save uploaded video temporarily using a named temporary file
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
+#         video_file.save(temp_video.name)  # Save the uploaded video to the temp file
+#         video_path = temp_video.name  # Store the temp video file path
+
+#     # Ensure processed video directory exists
+#     processed_dir = os.path.join("static", "Processed_Videos")
+#     os.makedirs(processed_dir, exist_ok=True)  # Create the directory if it doesn't exist
+
+#     # Process the video (e.g., cropping face regions or other processing)
+#     processed_video = create_face_videos(video_path)  # Process the video and get the processed path
+#     print(f"Processed Video Saved: {processed_video}")  # For logging purposes
+
+#     # Extract a hash for analysis from the processed video
+#     video_hash = generate_video_hash(processed_video)  # Generate hash from the video
+#     print(f"Extracted Video Hash: {video_hash}")  # For logging purposes
+
+#     # Ensure hash storage directory exists
+#     hash_dir = os.path.join(processed_dir, "hashes")
+#     os.makedirs(hash_dir, exist_ok=True)  # Create the directory if it doesn't exist
+
+#     # Save video hash if necessary
+#     hash_file_path = save_video_hashes(video_hash, hash_dir)  # Ensure this function returns the file path
+
+#     # Read hashes from the file
+#     with open(hash_file_path, 'r') as file:
+#         hashes_list = [line.strip() for line in file.readlines()]  # Store the hashes in a list
+
+#     # Run deepfake detection model
+#     prediction = detect_fake_video(processed_video)  # Run the model on the processed video
+#     result_label = "REAL" if prediction[0] == 1 else "FAKE"  # Label the result based on prediction
+#     confidence_score = prediction[1]  # Get the confidence score from the model
+#     first_frame = extract_first_frame(processed_video)
+
+#     # Return the result to the front-end with the prediction and the path to the processed video
+#     return render_template(
+#         "result.html",
+#         prediction=result_label,
+#         confidence=confidence_score,
+#         processed_video_path=processed_video,
+#         hash=hashes_list,  # Send list of hashes to the template
+#         first_frame_path=first_frame_path
+#     )
 
 if __name__ == "__main__":
     app.run(debug=True)

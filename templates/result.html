@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -217,6 +217,455 @@
     }
 }
 
+
+async function storeHashesIfReal() {
+  const predictionElement = document.getElementById('prediction');
+  
+  const predictionText = predictionElement.innerText.trim();  // Directly trim
+  
+const alertMessage = document.getElementById('alert-message');
+
+    // Check if the prediction is "real"
+    if (predictionText.toLowerCase() !== 'real') {
+        alertMessage.innerText = 'Prediction is not real. Hash will not be stored. Fetching hash instead...';
+        try {
+            console.log(hashes)
+            document.getElementById('hash-result').innerHTML = `<p>Fetched Hash: ${hashes[0]}</p>`;
+        } catch (error) {
+            console.error('Error fetching hash:', error);
+            alertMessage.innerText = 'An error occurred while fetching the hash.';
+            alert('Fake video cannot be stored on blockchain');
+        }
+
+        return;  // Exit the function
+    }
+
+    // Proceed to store hash if prediction is "real"
+    try {
+        // const hashe = {{ hash | tojson }};
+        // const formattedHashes = hashe.map(item => `"${item}"`).join(", ");
+        // console.log(`const hashes = [${formattedHashes}];`);
+        // console.log(hashes)
+        const hashe = JSON.parse('{{ hash | tojson | safe }}');
+        console.log("hash",hashe)
+
+
+        const provider = await detectMetaMask();
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+        // Store hash in the smart contract
+        const transaction = await contract.storeHashes(hashe);
+        const receipt = await transaction.wait();
+        
+        alert(`Transaction successful! Tx Hash: ${receipt.transactionHash}`);
+        alertMessage.innerText = ''; // Clear previous messages
+    } catch (error) {
+        console.error('Error storing hash:', error);
+        // alertMessage.innerText = 'An error occurred while storing the hash.';
+        alert(error.reason)
+    }
+}
+
+      
+const storeHashButton = document.getElementById('store-hash-button');
+if (storeHashButton) {
+    storeHashButton.addEventListener('click', storeHashesIfReal);
+    alert("Please find the result")
+} else {
+    console.error('Store hash button not found!');
+}
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Processing Result</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <script src="https://unpkg.com/@thirdweb-dev/sdk@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/@thirdweb-dev/sdk@latest"></script>
+
+  <style>
+    body {
+         font-family: Arial, sans-serif;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         background: url('{{ url_for('static', filename='bg.webp') }}') no-repeat center center fixed;
+         background-size: cover;
+         margin: 0;
+         min-height: 100vh;
+     }
+
+     body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7); /* Adjust opacity (0 = fully transparent, 1 = fully visible) */
+    z-index: -1;
+}
+
+     .header {
+         width: 100%;
+         background: linear-gradient(to right, #fadadd, #f8bbc5);
+         color: white;
+         padding: 20px 0px;
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+     }
+
+     .header img {
+         height: 50px;
+         margin-left: 20px;
+     }
+
+     .header h1 {
+         flex: 1;
+         text-align: center;
+         font-size: 22px;
+         margin: 0;
+         font-weight: bold;
+     }
+
+     .main-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 900px;
+    /* margin: auto; */
+    padding: 20px;
+}
+
+.result-container {
+    flex: 1;
+    max-width: 450px;
+    text-align: center;
+    margin-top: -50px;
+    top: -35px;
+}
+
+.image-container {
+    flex: 1;
+    text-align: center;
+}
+
+     #store-hash-button {
+        background-color: #000000;
+         color: white;
+         padding: 10px 20px;
+         border-radius: 5px;
+         border: none;
+         font-size: 16px;
+         cursor: pointer;
+         transition: background 0.3s;
+         margin-top: 15px;
+     }
+
+     #store-hash-button:hover {
+        background-color: #f8bbc5;
+     }
+
+     .girl-image {
+         width: 450px;
+         right: -150px;
+         top: -50px;
+         position: relative;
+     }
+
+     .footer {
+         width: 100%;
+         background: linear-gradient(to right, #fadadd, #f8bbc5);
+         color: white;
+         /* padding: 15px; */
+         text-align: center;
+         position: relative;
+         top: 90px;
+     }
+
+     .footer a {
+         color: white;
+         text-decoration: none;
+         font-weight: bold;
+     }
+
+     .footer a:hover {
+         text-decoration: underline;
+     }
+
+     .contact-info {
+         display: flex;
+         justify-content: center;
+         gap: 50px;
+         flex-wrap: wrap;
+     }
+
+     .contact-info div {
+         display: flex;
+         align-items: center;
+     }
+
+     .contact-info p {
+         display: flex;
+         align-items: center;
+         gap: 10px;
+     }
+
+     .contact-info img {
+         vertical-align: middle;
+     }
+     .first-frame {
+    width: 300px;  /* Adjust width */
+    height: 180px; /* Adjust height to maintain aspect ratio */
+    object-fit: cover; /* Ensures the image is properly cropped */
+    border-radius: 10px; /* Optional: Adds rounded corners */
+    display: block; /* Ensures it does not overflow */
+    margin: 10px auto; /* Centers the image */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Adds slight shadow */
+}
+.logo {
+    width: 200px; /* Adjust width */
+    height: 100px; /* Maintains aspect ratio */
+    display: block; /* Ensures it does not overflow */
+    /* margin: 10px auto; Centers the image */
+}
+
+ </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+        <h1>Blockchain Based Deepfake Video Detection Using Deep Learning</h1>
+    </div>
+
+    <div class="main-container">
+        <div class="result-container">
+            
+    {% if first_frame_path %}
+    <img src="static/uploads/first_frame.jpg"
+         alt="First Frame of Video" class="first-frame" width="500">
+{% endif %}
+
+<p><strong>Prediction:</strong> <span id="prediction">{{ prediction }}</span></p>
+<p><strong>Confidence:</strong> <span id="confidence">{{ confidence }}</span>%</p>
+            <button id="store-hash-button">Store Hashes</button>
+            <a class="back-link" href="/">Upload another video</a>
+            <p class="alert" id="alert-message"></p>
+            <p id="hash-result"></p>
+        </div>
+    <div class="image-container">
+        <img src="{{ url_for('static', filename='girl_final.png') }}" alt="Girl with laptop" class="girl-image">
+    </div>    
+</div>
+
+    <div class="footer">
+        <p>Contact Us:</p>
+        <div class="contact-info">
+            <div>
+                <p>
+                    Bramheti Patil 
+                    <a href="mailto:member1@example.com">
+                        <img src="{{ url_for('static', filename='mail-icon.jpg') }}" alt="Email" width="20" height="20">
+                    </a> 
+                    <a href="https://linkedin.com/" target="_blank">
+                        <img src="{{ url_for('static', filename='linkedin.png') }}" alt="LinkedIn" width="20" height="20">
+                    </a>
+                </p>
+            </div>
+            <div>
+                <p>
+                    Swara Gharat 
+                    <a href="mailto:member2@example.com">
+                        <img src="{{ url_for('static', filename='mail-icon.jpg') }}" alt="Email" width="20" height="20">
+                    </a> 
+                    <a href="https://linkedin.com/" target="_blank">
+                        <img src="{{ url_for('static', filename='linkedin.png') }}" alt="LinkedIn" width="20" height="20">
+                    </a>
+                </p>
+            </div>
+            <div>
+                <p>
+                    Srushti Gawande 
+                    <a href="mailto:member3@example.com">
+                        <img src="{{ url_for('static', filename='mail-icon.jpg') }}" alt="Email" width="20" height="20">
+                    </a> 
+                    <a href="https://linkedin.com/" target="_blank">
+                        <img src="{{ url_for('static', filename='linkedin.png') }}" alt="LinkedIn" width="20" height="20">
+                    </a>
+                </p>
+            </div>
+        </div>
+        <p class="copyright">© 2025 Blockchain Based Deepfake Video Detection System Using Deep Learning. All rights reserved.</p>
+    </div>
+    <script>
+        const CONTRACT_ADDRESS = '0x36432932F287A29B8E9178dB29F91290329B25a9'; 
+        const CONTRACT_ABI = [
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string[]",
+                        "name": "_localHashes",
+                        "type": "string[]"
+                    }
+                ],
+                "name": "compareHashes",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "similarFrames",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "hash1",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "hash2",
+                        "type": "string"
+                    }
+                ],
+                "name": "getHammingDistance",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "distance",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "pure",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_id",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getHashById",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string[]",
+                        "name": "",
+                        "type": "string[]"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getTotalHashes",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "idToHash",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "nextId",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "similarityThreshold",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string[]",
+                        "name": "_hashes",
+                        "type": "string[]"
+                    }
+                ],
+                "name": "storeHashes",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        
+
+        async function detectMetaMask() {
+    if (typeof window.ethereum !== 'undefined') {
+        console.log('MetaMask is installed!');
+        await ethereum.request({ method: 'eth_requestAccounts' });
+        return new ethers.providers.Web3Provider(window.ethereum);
+    } else {
+        alert('Please install MetaMask to use this feature.');
+        throw new Error('MetaMask not found');
+    }
+}
 
 async function storeHashesIfReal() {
   const predictionElement = document.getElementById('prediction');
