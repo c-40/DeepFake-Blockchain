@@ -1,0 +1,166 @@
+import os
+import cv2
+import tempfile
+import subprocess
+import imagehash
+from PIL import Image
+from flask import Flask, request, render_template, url_for
+from video_processing import detect_fake_video
+from pymediainfo import MediaInfo
+from retinaface import RetinaFace
+
+app = Flask(__name__)
+
+# Create output directories if they don't exist
+os.makedirs('static/Processed_Videos', exist_ok=True)
+
+
+def frame_extract(video_path, max_frames=20):
+    cap = cv2.VideoCapture(video_path)
+    frames = []
+    while True:
+        ret, frame = cap.read()
+        if not ret or len(frames) >= max_frames:
+            break
+        frames.append(frame)
+    cap.release()
+    return frames
+
+
+def detect_faces_with_retinaface(frame):
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    detections = RetinaFace.detect_faces(rgb)
+    cropped_faces = []
+    if isinstance(detections, dict):
+        for key in detections:
+            face = detections[key]
+            x1, y1, x2, y2 = face['facial_area']
+            face_img = frame[y1:y2, x1:x2]
+            if face_img.size > 0:
+                face_img = cv2.resize(face_img, (112, 112))
+                cropped_faces.append(face_img)
+    return cropped_faces
+
+
+def create_face_videos(file_path):
+    out_path = os.path.join('static/Processed_Videos', "processed_video.mp4")
+    out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'mp4v'), 30, (112, 112))
+
+    for idx, frame in enumerate(frame_extract(file_path)):
+        if idx <= 150:
+            cropped_faces = detect_faces_with_retinaface(frame)
+            for face_image in cropped_faces:
+                out.write(face_image)
+
+    out.release()
+    return out_path
+
+
+def generate_video_hash(video_path, max_frames=20):
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print("Error: Could not open video.")
+        return []
+
+    frame_hashes = []
+    for idx, frame in enumerate(frame_extract(video_path, max_frames=max_frames)):
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        pil_image = Image.fromarray(gray_frame)
+        p_hash = imagehash.phash(pil_image)
+        frame_hashes.append(str(p_hash))
+        print(f"Frame {idx + 1} hash: {str(p_hash)}")
+
+    cap.release()
+    return frame_hashes
+
+
+def save_video_hashes(video_hashes, out_dir):
+    hash_file_path = os.path.join(out_dir, "video_hashes.txt")
+    with open(hash_file_path, 'w') as hash_file:
+        for hash_value in video_hashes:
+            hash_file.write(f"{hash_value}\n")
+    return hash_file_path
+
+
+def extract_first_frame(video_path):
+    cap = cv2.VideoCapture(video_path)
+    success, frame = cap.read()
+    if success:
+        first_frame_path = 'static/uploads/first_frame.jpg'
+        os.makedirs(os.path.dirname(first_frame_path), exist_ok=True)
+        cv2.imwrite(first_frame_path, frame)
+        cap.release()
+        return first_frame_path
+    else:
+        cap.release()
+        raise Exception("Could not extract the first frame from the video.")
+
+
+def extract_video_metadata(video_path):
+    media_info = MediaInfo.parse(video_path)
+    metadata = {}
+    for track in media_info.tracks:
+        if track.track_type == "General":
+            for key, value in track.to_data().items():
+                if value:
+                    metadata[key] = value
+    return metadata
+
+
+def save_metadata(metadata, out_dir):
+    metadata_path = os.path.join(out_dir, "video_metadata.txt")
+    with open(metadata_path, 'w') as metadata_file:
+        for key, value in metadata.items():
+            metadata_file.write(f"{key}: {value}\n")
+    return metadata_path
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if 'video_file' not in request.files:
+        return "No file uploaded.", 400
+
+    video_file = request.files['video_file']
+    if not video_file.filename:
+        return "No file selected.", 400
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
+        video_file.save(temp_video.name)
+        video_path = temp_video.name
+
+    processed_dir = os.path.join("static", "Processed_Videos")
+    os.makedirs(processed_dir, exist_ok=True)
+
+    processed_video = create_face_videos(video_path)
+    print(f"Processed Video Saved: {processed_video}")
+
+    video_hash = generate_video_hash(processed_video)
+    print(f"Extracted Video Hash: {video_hash}")
+
+    hash_dir = os.path.join(processed_dir, "hashes")
+    os.makedirs(hash_dir, exist_ok=True)
+
+    hash_file_path = save_video_hashes(video_hash, hash_dir)
+
+    with open(hash_file_path, 'r') as file:
+        hashes_list = [line.strip() for line in file.readlines()]
+
+    prediction = detect_fake_video(processed_video)
+    result_label = "REAL" if prediction[0] == 1 else "FAKE"
+    confidence_score = prediction[1]
+
+    first_frame_path = extract_first_frame(video_path)
+
+    return render_template(
+        "result.html",
+        prediction=result_label,
+        confidence=confidence_score,
+        processed_video_path=processed_video,
+        hash=hashes_list,
+        first_frame_path=first_frame_path
+    )
