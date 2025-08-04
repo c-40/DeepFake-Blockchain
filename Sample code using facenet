@@ -1,5 +1,8 @@
 
- Current :https://github.com/timesler/facenet-pytorch
+Current :https://github.com/timesler/facenet-pytorch
+https://github.com/serengil/deepface
+https://cmusatyalab.github.io/openface/
+-----------------------------------------------------------------------------
 import os
 import cv2
 import tempfile
