@@ -1,117 +1,154 @@
-import torch
-from torchvision import models, transforms
-from torch.utils.data import Dataset
-from torch import nn
-import numpy as np
-import cv2
 import os
-from retinaface import RetinaFace
+import cv2
+import tempfile
+import subprocess
+import imagehash
+from PIL import Image
+from flask import Flask, request, render_template
+from video_processing import detect_fake_video
+from pymediainfo import MediaInfo
+from facenet_pytorch import MTCNN
 
-# Dataset for video frames
-class ValidationDataset(Dataset):
-    def __init__(self, video_names, sequence_length=60, transform=None):
-        self.video_names = video_names
-        self.transform = transform
-        self.count = sequence_length
+app = Flask(__name__)
 
-    def __len__(self):
-        return len(self.video_names)
+# Initialize MTCNN detector
+mtcnn = MTCNN(image_size=112, margin=0)
 
-    def __getitem__(self, idx):
-        video_path = self.video_names[idx]
-        frames = []
-        a = int(100 / self.count)
-        first_frame = np.random.randint(0, a)
-        for i, frame in enumerate(self.frame_extract(video_path)):
-            faces = self.detect_faces_with_retinaface(frame)
-            if faces:
-                frame = faces[0]  # Use the first detected face
-            frames.append(self.transform(frame))
-            if len(frames) == self.count:
-                break
-        frames = torch.stack(frames)
-        frames = frames[:self.count]
-        return frames.unsqueeze(0)
+# Create output directories if they don't exist
+os.makedirs('static/Processed_Videos', exist_ok=True)
 
-    def frame_extract(self, path):
-        vidObj = cv2.VideoCapture(path)
-        success = 1
-        while success:
-            success, image = vidObj.read()
-            if success:
-                yield image
+def frame_extract(video_path, max_frames=20):
+    """Extract up to max_frames from the video."""
+    cap = cv2.VideoCapture(video_path)
+    frames = []
+    while True:
+        ret, frame = cap.read()
+        if not ret or len(frames) >= max_frames:
+            break
+        frames.append(frame)
+    cap.release()
+    return frames
 
-    def detect_faces_with_retinaface(self, frame):
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        detections = RetinaFace.detect_faces(rgb)
-        cropped_faces = []
-        if isinstance(detections, dict):
-            for key in detections:
-                face = detections[key]
-                x1, y1, x2, y2 = face['facial_area']
-                face_img = frame[y1:y2, x1:x2]
-                if face_img.size > 0:
-                    face_img = cv2.resize(face_img, (112, 112))
-                    cropped_faces.append(face_img)
-        return cropped_faces
+def create_face_videos(file_path):
+    """Process a video file and create a face-cropped video."""
+    out_path = os.path.join('static/Processed_Videos', "processed_video.mp4")
+    frames = []
+    out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'mp4v'), 30, (112, 112))
 
-# Model definition
-class Model(nn.Module):
-    def __init__(self, num_classes, latent_dim=2048, lstm_layers=1, hidden_dim=2048, bidirectional=False):
-        super(Model, self).__init__()
-        model = models.resnext50_32x4d(pretrained=True)
-        self.model = nn.Sequential(*list(model.children())[:-2])
-        self.lstm = nn.LSTM(latent_dim, hidden_dim, lstm_layers, bidirectional)
-        self.relu = nn.LeakyReLU()
-        self.dp = nn.Dropout(0.4)
-        self.linear1 = nn.Linear(2048, num_classes)
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
+    for idx, frame in enumerate(frame_extract(file_path)):
+        if idx <= 150:
+            boxes, _ = mtcnn.detect(frame)
+            if boxes is not None:
+                for box in boxes:
+                    x1, y1, x2, y2 = [int(b) for b in box]
+                    face_image = frame[y1:y2, x1:x2]
+                    if face_image.size == 0:
+                        continue
+                    face_image = cv2.resize(face_image, (112, 112))
+                    out.write(face_image)
+            else:
+                print("No faces detected in frame", idx)
+    out.release()
+    return out_path
 
-    def forward(self, x):
-        batch_size, seq_length, c, h, w = x.shape
-        x = x.view(batch_size * seq_length, c, h, w)
-        fmap = self.model(x)
-        x = self.avgpool(fmap)
-        x = x.view(batch_size, seq_length, 2048)
-        x_lstm, _ = self.lstm(x, None)
-        return fmap, self.dp(self.linear1(x_lstm[:, -1, :]))
+def generate_video_hash(video_path, max_frames=20):
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print("Error: Could not open video.")
+        return []
+    frame_hashes = []
+    for idx, frame in enumerate(frame_extract(video_path, max_frames=max_frames)):
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        pil_image = Image.fromarray(gray_frame)
+        p_hash = imagehash.phash(pil_image)
+        frame_hashes.append(str(p_hash))
+        print(f"Frame {idx + 1} hash: {str(p_hash)}")
+    cap.release()
+    return frame_hashes
 
-    def get_heatmap(self, fmap, weight):
-        _, nc, h, w = fmap.shape
-        heatmap = np.zeros((h, w), dtype=np.float32)
-        for i in range(nc):
-            heatmap += weight[i] * fmap[0, i, :, :].detach().numpy()
-        heatmap = np.maximum(heatmap, 0)
-        heatmap = heatmap / heatmap.max()
-        return heatmap
+def save_video_hashes(video_hashes, out_dir):
+    hash_file_path = os.path.join(out_dir, "video_hashes.txt")
+    with open(hash_file_path, 'w') as hash_file:
+        for hash_value in video_hashes:
+            hash_file.write(f"{hash_value}\n")
+    return hash_file_path
 
-# Prediction function
-def predict(model, img):
-    fmap, logits = model(img)
-    weight_softmax = model.linear1.weight.detach().cpu().numpy()
-    logits = torch.nn.Softmax()(logits)
-    _, prediction = torch.max(logits, 1)
-    confidence = logits[:, int(prediction.item())].item() * 100
-    heatmap = model.get_heatmap(fmap, weight_softmax[int(prediction.item())])
-    return [int(prediction.item()), confidence, heatmap]
+def extract_first_frame(video_path):
+    cap = cv2.VideoCapture(video_path)
+    success, frame = cap.read()
+    if success:
+        first_frame_path = 'static/uploads/first_frame.jpg'
+        cv2.imwrite(first_frame_path, frame)
+        cap.release()
+        return first_frame_path
+    else:
+        cap.release()
+        raise Exception("Could not extract the first frame from the video.")
 
-# Function to detect fake video
-def detect_fake_video(video_path):
-    im_size = 112
-    mean = [0.485, 0.456, 0.406]
-    std = [0.229, 0.224, 0.225]
+def extract_video_metadata(video_path):
+    media_info = MediaInfo.parse(video_path)
+    metadata = {}
+    for track in media_info.tracks:
+        if track.track_type == "General":
+            for key, value in track.to_data().items():
+                if value:
+                    metadata[key] = value
+    return metadata
 
-    transform = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Resize((im_size, im_size)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean, std)
-    ])
+def save_metadata(metadata, out_dir):
+    metadata_path = os.path.join(out_dir, "video_metadata.txt")
+    with open(metadata_path, 'w') as metadata_file:
+        for key, value in metadata.items():
+            metadata_file.write(f"{key}: {value}\n")
+    return metadata_path
 
-    video_dataset = ValidationDataset([video_path], sequence_length=20, transform=transform)
-    model = Model(2)
-    model.load_state_dict(torch.load('model/df_model.pt', map_location=torch.device('cpu')))
-    model.eval()
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-    prediction = predict(model, video_dataset[0])
-    return prediction
+@app.route('/upload', methods=['POST'])
+def upload():
+    if 'video_file' not in request.files:
+        return "No file uploaded.", 400
+    video_file = request.files['video_file']
+    if not video_file.filename:
+        return "No file selected.", 400
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
+        video_file.save(temp_video.name)
+        video_path = temp_video.name
+
+    processed_dir = os.path.join("static", "Processed_Videos")
+    os.makedirs(processed_dir, exist_ok=True)
+
+    processed_video = create_face_videos(video_path)
+    print(f"Processed Video Saved: {processed_video}")
+
+    video_hash = generate_video_hash(processed_video)
+    print(f"Extracted Video Hash: {video_hash}")
+
+    hash_dir = os.path.join(processed_dir, "hashes")
+    os.makedirs(hash_dir, exist_ok=True)
+
+    hash_file_path = save_video_hashes(video_hash, hash_dir)
+
+    with open(hash_file_path, 'r') as file:
+        hashes_list = [line.strip() for line in file.readlines()]
+
+    prediction = detect_fake_video(processed_video)
+    result_label = "REAL" if prediction[0] == 1 else "FAKE"
+    confidence_score = prediction[1]
+
+    first_frame_path = extract_first_frame(video_path)
+
+    return render_template(
+        "result.html",
+        prediction=result_label,
+        confidence=confidence_score,
+        processed_video_path=processed_video,
+        hash=hashes_list,
+        first_frame_path=first_frame_path
+    )
+
+if __name__ == "__main__":
+    app.run(debug=True)
